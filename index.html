@@ -125,9 +125,11 @@
     position:relative;
     overflow:hidden;
     width:100%;
+    transition:height .32s cubic-bezier(.22,.9,.35,1);
   }
   .track{
     display:flex;
+    align-items:flex-start;
     width:500%;
     transition:transform .32s cubic-bezier(.22,.9,.35,1);
     will-change:transform;
@@ -173,8 +175,8 @@
     display:flex;align-items:center;justify-content:center;
   }
   .home-hero .hh-icon svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-  .home-hero h2{font-size:19px;margin:0 0 6px;font-weight:700;}
-  .home-hero p{margin:0;font-size:12.5px;color:var(--sub);line-height:1.5;}
+  .home-hero h2{font-size:22px;margin:0 0 8px;font-weight:700;}
+  .home-hero p{margin:0;font-size:14.5px;color:var(--sub);line-height:1.6;}
 
   .home-grid{
     display:grid;
@@ -771,6 +773,8 @@
 <script>
 (function(){
   var track = document.getElementById('track');
+  var viewport = document.querySelector('.viewport');
+  var panels = Array.prototype.slice.call(track.children);
   var buttons = Array.prototype.slice.call(document.querySelectorAll('.nav-btn'));
   var homeBtn = document.getElementById('homeBtn');
   var titleEl = document.getElementById('pageHeaderTitle');
@@ -779,6 +783,11 @@
   var current = 0;
   var total = 5;
 
+  function syncHeight(){
+    var h = panels[current].offsetHeight;
+    if (h > 0) viewport.style.height = h + 'px';
+  }
+
   function render(){
     track.style.transform = 'translateX(-' + (current * 20) + '%)';
     buttons.forEach(function(b){
@@ -786,8 +795,12 @@
       b.classList.toggle('active', target === current);
     });
     titleEl.textContent = titles[current];
+    syncHeight();
     window.scrollTo(0, 0);
   }
+
+  window.addEventListener('resize', syncHeight);
+  window.addEventListener('load', syncHeight);
 
   buttons.forEach(function(btn){
     btn.addEventListener('click', function(){
