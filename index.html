@@ -272,14 +272,6 @@
   .placeholder .ph-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;}
   .placeholder .ph-desc{font-size:12.5px;line-height:1.5;}
 
-  .swipe-hint{
-    text-align:center;
-    font-size:11px;
-    color:var(--sub);
-    margin:6px 0 2px;
-    opacity:.8;
-  }
-
   /* ---------- 설치 장소: 안내 이미지 카드 ---------- */
   .info-card{
     background:var(--card-bg);
@@ -317,6 +309,11 @@
     border-radius:16px;
     padding:10px 10px 14px;
     box-shadow:0 2px 10px rgba(11,58,107,0.05);
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .floor-slider:active .floor-slider-inner{
+    transform:scale(0.985);
   }
   .floor-slider-inner{
     position:relative;
@@ -325,6 +322,7 @@
     border-radius:10px;
     overflow:hidden;
     background:#fff;
+    transition:transform .12s ease;
   }
   .fs-img{
     position:absolute;
@@ -352,6 +350,50 @@
   .floor-dots .dot.active{
     background:var(--accent);
     transform:scale(1.3);
+  }
+
+  .floor-hint{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    margin:10px 0 0;
+    font-size:12px;
+    color:var(--sub);
+  }
+  .floor-hint svg{width:14px;height:14px;stroke:var(--sub);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+  /* ---------- 이미지 확대 보기(라이트박스) ---------- */
+  .img-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(4,10,20,0.92);
+    z-index:200;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:calc(env(safe-area-inset-top,0px) + 20px) 16px calc(env(safe-area-inset-bottom,0px) + 20px);
+  }
+  .img-modal.open{display:flex;}
+  .img-modal img{
+    max-width:100%;
+    max-height:100%;
+    border-radius:10px;
+    object-fit:contain;
+  }
+  .img-modal-close{
+    position:absolute;
+    top:calc(env(safe-area-inset-top,0px) + 16px);
+    right:16px;
+    width:38px;height:38px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.14);
+    border:1px solid rgba(255,255,255,0.25);
+    color:#fff;
+    font-size:17px;
+    line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    -webkit-tap-highlight-color:transparent;
   }
 
   /* ---------- FAQ 아코디언 ---------- */
@@ -621,6 +663,11 @@
           </div>
         </div>
 
+        <p class="floor-hint">
+          <svg viewBox="0 0 24 24"><path d="M15 3h6v6"></path><path d="M9 21H3v-6"></path><path d="M21 3l-7 7"></path><path d="M3 21l7-7"></path></svg>
+          도면을 터치하면 크게 볼 수 있어요
+        </p>
+
       </div>
     </section>
 
@@ -715,7 +762,11 @@
 
   </div>
 </div>
-<p class="swipe-hint">← 좌우로 밀어 다른 안내로 이동할 수 있어요 →</p>
+
+<div class="img-modal" id="imgModal">
+  <button class="img-modal-close" id="imgModalClose" aria-label="닫기">✕</button>
+  <img id="imgModalImg" src="" alt="도면 확대 보기">
+</div>
 
 <script>
 (function(){
@@ -735,6 +786,7 @@
       b.classList.toggle('active', target === current);
     });
     titleEl.textContent = titles[current];
+    window.scrollTo(0, 0);
   }
 
   buttons.forEach(function(btn){
@@ -758,60 +810,42 @@
     });
   });
 
-  // ---- 스와이프 처리 ----
-  var startX = 0, startY = 0, deltaX = 0, dragging = false;
-  var viewport = document.querySelector('.viewport');
-
-  viewport.addEventListener('touchstart', function(e){
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    deltaX = 0;
-    dragging = true;
-    track.style.transition = 'none';
-  }, {passive:true});
-
-  viewport.addEventListener('touchmove', function(e){
-    if(!dragging) return;
-    var x = e.touches[0].clientX;
-    var y = e.touches[0].clientY;
-    deltaX = x - startX;
-    var deltaY = y - startY;
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      var base = -(current * 20);
-      var vw = viewport.clientWidth;
-      var pct = (deltaX / vw) * 20;
-      track.style.transform = 'translateX(' + (base + pct) + '%)';
-    }
-  }, {passive:true});
-
-  viewport.addEventListener('touchend', function(){
-    if(!dragging) return;
-    dragging = false;
-    track.style.transition = '';
-    var threshold = viewport.clientWidth * 0.18;
-    if (deltaX < -threshold && current < total - 1) {
-      current++;
-    } else if (deltaX > threshold && current > 0) {
-      current--;
-    }
-    render();
-  });
-
   render();
 
   // ---- 설치 장소: 도면 이미지 1초 간격 자동 전환 ----
   var floorImgs = document.querySelectorAll('#floorSlider .fs-img');
   var floorDots = document.querySelectorAll('#floorDots .dot');
+  var fIdx = 0;
   if (floorImgs.length) {
-    var fIdx = 0;
     setInterval(function(){
       floorImgs[fIdx].classList.remove('active');
       floorDots[fIdx].classList.remove('active');
       fIdx = (fIdx + 1) % floorImgs.length;
       floorImgs[fIdx].classList.add('active');
       floorDots[fIdx].classList.add('active');
+      if (imgModal.classList.contains('open')) {
+        imgModalImg.src = floorImgs[fIdx].src;
+      }
     }, 1000);
   }
+
+  // ---- 도면 확대 보기 ----
+  var floorSlider = document.getElementById('floorSlider');
+  var imgModal = document.getElementById('imgModal');
+  var imgModalImg = document.getElementById('imgModalImg');
+  var imgModalClose = document.getElementById('imgModalClose');
+
+  if (floorSlider) {
+    floorSlider.addEventListener('click', function(){
+      imgModalImg.src = floorImgs[fIdx].src;
+      imgModal.classList.add('open');
+    });
+  }
+  function closeModal(){ imgModal.classList.remove('open'); }
+  imgModalClose.addEventListener('click', closeModal);
+  imgModal.addEventListener('click', function(e){
+    if (e.target === imgModal) closeModal();
+  });
 })();
 </script>
 
