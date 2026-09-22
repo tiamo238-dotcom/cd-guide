@@ -241,10 +241,11 @@
   .step-head .sh-title{font-size:14.5px;font-weight:700;}
   .step-card img{
     display:block;
-    width:100%;
+    width:78%;
+    max-width:280px;
+    margin:0 auto 12px;
     border-radius:12px;
     border:1px solid var(--border);
-    margin-bottom:10px;
   }
   .step-card .caption{
     font-size:13px;
@@ -821,6 +822,10 @@
       current = parseInt(el.getAttribute('data-goto'), 10);
       render();
     });
+  });
+
+  document.querySelectorAll('.faq-item').forEach(function(d){
+    d.addEventListener('toggle', syncHeight);
   });
 
   render();
