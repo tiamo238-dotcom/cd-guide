@@ -867,5 +867,34 @@
 })();
 </script>
 
+<!-- 접속 통계 기록 (Supabase) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  try {
+    var SUPABASE_URL = "https://ahmktrllwormidrcvthf.supabase.co";
+    var SUPABASE_KEY = "sb_publishable_8gTnotOL-kRIcvCZk8HUDg_oaiF7naA";
+    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function getVisitorId(){
+      var key = 'cd_guide_visitor_id';
+      var id = localStorage.getItem(key);
+      if (!id) {
+        id = 'v_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(key, id);
+      }
+      return id;
+    }
+
+    sb.from('cd_guide_visits').insert({
+      page: 'home',
+      visitor_id: getVisitorId()
+    }).then(function(){ /* ok */ }).catch(function(){ /* silent */ });
+  } catch(e) {
+    // 통계 기록 실패는 페이지 이용에 영향 없도록 무시
+  }
+})();
+</script>
+
 </body>
 </html>
