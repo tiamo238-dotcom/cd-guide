@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CD 등록기 안내 페이지 관리자</title>
+<style>
+  :root{
+    --navy:#0b3a6b;
+    --navy-dark:#082a4d;
+    --navy-light:#1a5aa0;
+    --accent:#0f7cc4;
+    --bg:#f4f6f9;
+    --card-bg:#ffffff;
+    --text:#1c2733;
+    --sub:#6b7684;
+    --border:#e3e8ee;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1420; --card-bg:#161f2e; --text:#eef2f6; --sub:#9aa7b6; --border:#243144;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1420; --card-bg:#161f2e; --text:#eef2f6; --sub:#9aa7b6; --border:#243144;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);overflow-x:hidden;}
+  *{box-sizing:border-box;}
+  html,body{min-height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  header{
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);
+    color:#fff;
+    padding:calc(env(safe-area-inset-top,0px) + 20px) 16px 20px;
+  }
+  .header-top{display:flex;align-items:center;gap:10px;}
+  .header-top .logo-mark{
+    width:32px;height:32px;flex-shrink:0;border-radius:9px;
+    background:rgba(255,255,255,0.14);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .header-top .logo-mark svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .header-top .org{font-size:11px;color:rgba(255,255,255,0.7);margin:0;font-weight:500;}
+  .header-top h1{font-size:16px;margin:1px 0 0;font-weight:700;}
+
+  main{max-width:480px;margin:0 auto;padding:20px 16px calc(env(safe-area-inset-bottom,0px) + 40px);}
+
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:20px 16px;
+    box-shadow:0 2px 10px rgba(11,58,107,0.05);
+  }
+  .card h2{font-size:15.5px;margin:0 0 6px;font-weight:700;}
+  .card .small{font-size:12.5px;color:var(--sub);margin:0 0 16px;line-height:1.5;}
+
+  .field{
+    width:100%;
+    padding:12px 14px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    font-size:14px;
+    background:var(--bg);
+    color:var(--text);
+    margin-bottom:10px;
+  }
+  .field:focus{outline:none;border-color:var(--navy-light);}
+
+  .action{
+    width:100%;
+    padding:13px;
+    border:none;
+    border-radius:12px;
+    background:var(--navy);
+    color:#fff;
+    font-size:14.5px;
+    font-weight:700;
+    -webkit-tap-highlight-color:transparent;
+    margin-top:4px;
+  }
+  .action:disabled{opacity:.6;}
+  .action.secondary{
+    background:var(--card-bg);
+    color:var(--sub);
+    border:1px solid var(--border);
+    margin-top:10px;
+  }
+
+  .status{
+    font-size:12.5px;
+    color:var(--sub);
+    margin-top:10px;
+    text-align:center;
+    min-height:16px;
+  }
+
+  .hidden{display:none !important;}
+
+  /* ---------- 접속자 통계 ---------- */
+  .stats-tabs{display:flex;gap:8px;margin:4px 0 18px;}
+  .stats-tab{
+    flex:1;
+    padding:10px 0;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--card-bg);
+    color:var(--sub);
+    font-weight:700;
+    font-size:13.5px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .stats-tab.active{
+    background:var(--navy);
+    border-color:var(--navy);
+    color:#fff;
+  }
+
+  .stats-summary{font-size:13.5px;color:var(--sub);margin-bottom:16px;}
+  .stats-summary strong{color:var(--navy-light);font-size:17px;}
+  @media (prefers-color-scheme: dark){ .stats-summary strong{color:#5ea8e8;} }
+  :root[data-theme="dark"] .stats-summary strong{color:#5ea8e8;}
+
+  .stats-chart{overflow-x:auto;padding-bottom:4px;}
+  .stats-bars{
+    display:flex;
+    align-items:flex-end;
+    gap:10px;
+    min-height:190px;
+    padding:0 4px;
+  }
+  .stats-bar-col{
+    flex:0 0 auto;
+    width:38px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-end;
+  }
+  .stats-bar-count{font-size:11px;color:var(--sub);margin-bottom:4px;font-weight:700;}
+  .stats-bar{
+    width:100%;
+    background:linear-gradient(180deg,var(--navy-light),var(--accent));
+    border-radius:6px 6px 2px 2px;
+    min-height:2px;
+  }
+  .stats-bar-label{
+    font-size:10.5px;
+    color:var(--sub);
+    margin-top:6px;
+    white-space:nowrap;
+    text-align:center;
+  }
+  .stats-empty{padding:30px 0;text-align:center;color:var(--sub);font-size:13.5px;}
+
+  .back-link{
+    display:block;
+    text-align:center;
+    margin-top:18px;
+    font-size:12.5px;
+    color:var(--sub);
+    text-decoration:none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"></rect><circle cx="12" cy="11" r="3"></circle><path d="M7 18v1M17 18v1"></path></svg>
+    </div>
+    <div>
+      <p class="org">한양대학교병원</p>
+      <h1>CD 등록기 안내 페이지 관리자</h1>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section id="loginCard" class="card">
+    <h2>🔐 관리자 로그인</h2>
+    <p class="small">로그인해야 접속 통계를 확인할 수 있습니다.<br>식단표 관리자 페이지와 동일한 계정으로 로그인하세요.</p>
+    <input id="email" type="email" class="field" placeholder="관리자 이메일">
+    <input id="password" type="password" class="field" placeholder="비밀번호">
+    <button class="action" id="loginBtn">로그인</button>
+    <div id="loginStatus" class="status"></div>
+  </section>
+
+  <section id="statsCard" class="card hidden">
+    <h2>📊 접속자 통계</h2>
+    <p class="small">CD 등록기 안내 페이지(index.html) 접속 횟수 추이입니다.</p>
+
+    <div class="stats-tabs">
+      <button class="stats-tab active" data-range="daily">일별</button>
+      <button class="stats-tab" data-range="weekly">주별</button>
+      <button class="stats-tab" data-range="monthly">월별</button>
+    </div>
+
+    <div id="statsSummary" class="stats-summary"></div>
+    <div id="statsChart" class="stats-chart"></div>
+
+    <button class="action secondary" id="logoutBtn">로그아웃</button>
+  </section>
+
+  <a class="back-link" href="/">← CD 등록기 안내 페이지로 돌아가기</a>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://ahmktrllwormidrcvthf.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_8gTnotOL-kRIcvCZk8HUDg_oaiF7naA";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const $ = id => document.getElementById(id);
+
+let currentStatsRange = 'daily';
+
+/* 로그인 상태 확인 */
+async function refresh(){
+  const { data, error } = await sb.auth.getSession();
+  if (error) {
+    $('loginStatus').textContent = error.message;
+    return;
+  }
+  const logged = !!data.session;
+  $('loginCard').classList.toggle('hidden', logged);
+  $('statsCard').classList.toggle('hidden', !logged);
+  if (logged) loadStats(currentStatsRange);
+}
+
+sb.auth.onAuthStateChange(() => { refresh(); });
+
+/* 로그인 */
+$('loginBtn').onclick = async () => {
+  const email = $('email').value.trim();
+  const password = $('password').value;
+  if (!email || !password) {
+    $('loginStatus').textContent = '이메일과 비밀번호를 입력하세요.';
+    return;
+  }
+  $('loginBtn').disabled = true;
+  $('loginStatus').textContent = '로그인 중...';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  $('loginStatus').textContent = error ? ('로그인 실패: ' + error.message) : '로그인 성공!';
+  $('loginBtn').disabled = false;
+  await refresh();
+};
+
+/* 로그아웃 */
+$('logoutBtn').onclick = async () => {
+  await sb.auth.signOut();
+  await refresh();
+};
+
+/* 집계는 DB(cd_guide_view_counts 함수) 안에서 처리 → 데이터가 많아져도 느려지지 않음 */
+async function fetchBucketCounts(bucket, since){
+  const { data, error } = await sb.rpc('cd_guide_view_counts', { bucket, since });
+  if (error) throw error;
+  const map = {};
+  (data || []).forEach(row => {
+    const key = bucket === 'month' ? String(row.bucket_start).slice(0,7) : String(row.bucket_start).slice(0,10);
+    map[key] = Number(row.cnt);
+  });
+  return map;
+}
+
+/* UTC 타임스탬프를 한국시간(KST) 기준 YYYY-MM-DD 문자열로 변환 */
+function toKstDateKey(isoString){
+  const utcMs = new Date(isoString).getTime();
+  const kst = new Date(utcMs + 9*60*60*1000);
+  const y = kst.getUTCFullYear();
+  const m = String(kst.getUTCMonth()+1).padStart(2,'0');
+  const d = String(kst.getUTCDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
+/* 해당 날짜가 속한 주(월~일)의 월요일 날짜 계산 */
+function mondayKeyOf(dateKey){
+  const [y,m,d] = dateKey.split('-').map(Number);
+  const dt = new Date(Date.UTC(y,m-1,d));
+  const day = dt.getUTCDay();
+  const diff = day===0 ? -6 : 1-day;
+  dt.setUTCDate(dt.getUTCDate()+diff);
+  const yy=dt.getUTCFullYear(), mm=String(dt.getUTCMonth()+1).padStart(2,'0'), dd=String(dt.getUTCDate()).padStart(2,'0');
+  return `${yy}-${mm}-${dd}`;
+}
+
+function shortLabel(dateKey){
+  const [y,m,d] = dateKey.split('-').map(Number);
+  const wd = ['일','월','화','수','목','금','토'][new Date(Date.UTC(y,m-1,d)).getUTCDay()];
+  return `${m}/${d}(${wd})`;
+}
+
+async function loadStats(range){
+  currentStatsRange = range;
+  document.querySelectorAll('.stats-tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.range===range);
+  });
+  $('statsChart').innerHTML = '<div class="stats-empty">불러오는 중...</div>';
+
+  const daysBack = range==='daily' ? 30 : range==='weekly' ? 84 : 365;
+  const since = new Date(Date.now() - daysBack*86400000).toISOString();
+  const bucket = range==='daily' ? 'day' : range==='weekly' ? 'week' : 'month';
+
+  let counts;
+  try {
+    counts = await fetchBucketCounts(bucket, since);
+  } catch (error) {
+    $('statsChart').innerHTML = `<div class="stats-empty">통계를 불러오지 못했습니다.<br>${error.message}</div>`;
+    $('statsSummary').textContent = '';
+    return;
+  }
+
+  const items = [];
+
+  if (range === 'daily') {
+    for (let i = daysBack-1; i >= 0; i--) {
+      const d = new Date(Date.now() - i*86400000);
+      const key = toKstDateKey(d.toISOString());
+      items.push({ key, label: shortLabel(key), count: counts[key]||0 });
+    }
+  } else if (range === 'weekly') {
+    const todayKey = toKstDateKey(new Date().toISOString());
+    const thisMonday = mondayKeyOf(todayKey);
+    const weeks = [];
+    let cursor = thisMonday;
+    for (let i=0;i<12;i++){
+      weeks.unshift(cursor);
+      const [y,m,d]=cursor.split('-').map(Number);
+      const dt=new Date(Date.UTC(y,m-1,d));
+      dt.setUTCDate(dt.getUTCDate()-7);
+      cursor = `${dt.getUTCFullYear()}-${String(dt.getUTCMonth()+1).padStart(2,'0')}-${String(dt.getUTCDate()).padStart(2,'0')}`;
+    }
+    weeks.forEach(mon=>{
+      const [y,m,d]=mon.split('-').map(Number);
+      const sun=new Date(Date.UTC(y,m-1,d));
+      sun.setUTCDate(sun.getUTCDate()+6);
+      const label = `${m}/${d}~${sun.getUTCMonth()+1}/${sun.getUTCDate()}`;
+      items.push({ key:mon, label, count: counts[mon]||0 });
+    });
+  } else {
+    const now = new Date();
+    const cursor = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const monthsList = [];
+    for (let i=0;i<12;i++){
+      const y=cursor.getUTCFullYear();
+      const m=String(cursor.getUTCMonth()+1).padStart(2,'0');
+      monthsList.unshift(`${y}-${m}`);
+      cursor.setUTCMonth(cursor.getUTCMonth()-1);
+    }
+    monthsList.forEach(key=>{
+      const [y,m]=key.split('-');
+      items.push({ key, label: `${y}.${m}`, count: counts[key]||0 });
+    });
+  }
+
+  const total = items.reduce((sum,x)=>sum+x.count, 0);
+  const rangeLabel = range==='daily' ? '최근 30일' : range==='weekly' ? '최근 12주' : '최근 12개월';
+  $('statsSummary').innerHTML = `${rangeLabel} 총 접속 <strong>${total}</strong>회`;
+
+  renderStatsChart(items);
+}
+
+function renderStatsChart(items){
+  if (!items.length) {
+    $('statsChart').innerHTML = '<div class="stats-empty">데이터가 없습니다.</div>';
+    return;
+  }
+  const max = Math.max(...items.map(x=>x.count), 1);
+  const bars = items.map(x=>{
+    const h = Math.max(Math.round((x.count/max)*140), x.count>0?4:0);
+    return `
+      <div class="stats-bar-col">
+        <div class="stats-bar-count">${x.count}</div>
+        <div class="stats-bar" style="height:${h}px" title="${x.label}: ${x.count}회"></div>
+        <div class="stats-bar-label">${x.label}</div>
+      </div>
+    `;
+  }).join('');
+  $('statsChart').innerHTML = `<div class="stats-bars">${bars}</div>`;
+}
+
+document.querySelectorAll('.stats-tab').forEach(btn=>{
+  btn.onclick = () => loadStats(btn.dataset.range);
+});
+
+refresh();
+</script>
+
+</body>
+</html>
