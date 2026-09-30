@@ -877,13 +877,19 @@
     var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     function getVisitorId(){
-      var key = 'cd_guide_visitor_id';
-      var id = localStorage.getItem(key);
-      if (!id) {
-        id = 'v_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-        localStorage.setItem(key, id);
+      // localStorage가 막혀있는 키오스크/잠금 브라우저에서도
+      // 방문 기록 자체는 남도록, 이 부분만 별도로 try/catch 처리
+      try {
+        var key = 'cd_guide_visitor_id';
+        var id = localStorage.getItem(key);
+        if (!id) {
+          id = 'v_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+          localStorage.setItem(key, id);
+        }
+        return id;
+      } catch (storageErr) {
+        return 'v_nostorage_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
       }
-      return id;
     }
 
     sb.from('cd_guide_visits').insert({
